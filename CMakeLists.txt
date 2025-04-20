@@ -28,37 +28,37 @@ set(PICO_BOARD pico_w CACHE STRING "Board type")
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
 
-project(adc_joystick C CXX ASM)
+project(alarme_industria C CXX ASM)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(adc_joystick adc_joystick.c inc/ssd1306.c)
+add_executable(alarme_industria alarme_industria.c inc/ssd1306.c)
 
-pico_set_program_name(adc_joystick "adc_joystick")
-pico_set_program_version(adc_joystick "0.1")
+pico_set_program_name(alarme_industria "alarme_industria")
+pico_set_program_version(alarme_industria "0.1")
 
 # Generate PIO header
-pico_generate_pio_header(adc_joystick ${CMAKE_CURRENT_LIST_DIR}/animacao_matriz.pio)
+pico_generate_pio_header(alarme_industria ${CMAKE_CURRENT_LIST_DIR}/animacao_matriz.pio)
 
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(adc_joystick 1)
-pico_enable_stdio_usb(adc_joystick 1)
+pico_enable_stdio_uart(alarme_industria 1)
+pico_enable_stdio_usb(alarme_industria 1)
 
 # Add the standard library to the build
-target_link_libraries(adc_joystick
+target_link_libraries(alarme_industria
         pico_stdlib)
 
 # Add the standard include files to the build
-target_include_directories(adc_joystick PRIVATE
+target_include_directories(alarme_industria PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
 )
 
 # Add any user requested libraries
-target_link_libraries(adc_joystick 
+target_link_libraries(alarme_industria 
         hardware_i2c
         hardware_pio
         hardware_clocks
@@ -66,5 +66,5 @@ target_link_libraries(adc_joystick
         hardware_pwm
         )
 
-pico_add_extra_outputs(adc_joystick)
+pico_add_extra_outputs(alarme_industria)
 

@@ -15,7 +15,6 @@
 
 // Definição de constantes
 #define LED_PIN_GREEN 11
-#define LED_PIN_BLUE 12
 #define LED_PIN_RED 13
 
 #define JOY_X 27 // Joystick está de lado em relação ao que foi dito no pdf
@@ -121,9 +120,6 @@ void configuraGPIO(){
     gpio_init(LED_PIN_RED);
     gpio_set_dir(LED_PIN_RED, GPIO_OUT);
 
-    gpio_init(LED_PIN_BLUE);
-    gpio_set_dir(LED_PIN_BLUE, GPIO_OUT);
-
     gpio_init(LED_PIN_GREEN);
     gpio_set_dir(LED_PIN_GREEN, GPIO_OUT);
 
@@ -209,12 +205,10 @@ int main(){
         if (temp < 40 && gas < 1000) {
             gpio_put(LED_PIN_GREEN, 1); // Liga o LED verde
             gpio_put(LED_PIN_RED, 0); // Desliga o LED vermelho
-            gpio_put(LED_PIN_BLUE, 0); // Desliga o LED azul
             if(!alarme_ativo) display_desenho(0); // Estado seguro
         } else if (temp > 55 || gas > 1500){
             gpio_put(LED_PIN_GREEN, 0); // Desliga o LED verde
             gpio_put(LED_PIN_RED, 1); // Liga o LED vermelho
-            gpio_put(LED_PIN_BLUE, 0); // Desliga o LED azul
             if ( current_time - last_time_alarm > 10000) {
                 iniciar_buzzer(BUZZER_A); // Liga o buzzer
                 alarme_ativo = true; // Ativa o alarme
@@ -223,7 +217,6 @@ int main(){
         } else {
             gpio_put(LED_PIN_GREEN, 1); // Liga o LED verde
             gpio_put(LED_PIN_RED, 1); // Liga o LED vermelho
-            gpio_put(LED_PIN_BLUE, 0); // Desliga o LED azul
             if(!alarme_ativo) display_desenho(1); // Estado de alerta
         }
         
@@ -238,12 +231,9 @@ int main(){
 
 
 
-        uint16_t x = (abs(vrx_value - 2048) > zona_morta) ? abs(vrx_value - 2048) * 2 : 0;
-        uint16_t y = (abs(vry_value - 2048) > zona_morta) ? abs(vry_value - 2048) * 2 : 0;
-        
         // x e y são o centro do quadrado
-        x = (vrx_value * WIDTH) / max_value_joy; // Calcula a posição do eixo x 
-        y = HEIGHT - ((vry_value * HEIGHT) / max_value_joy); // Calcula a posição do eixo y
+        uint16_t x = (vrx_value * WIDTH) / max_value_joy; // Calcula a posição do eixo x 
+        uint16_t y = HEIGHT - ((vry_value * HEIGHT) / max_value_joy); // Calcula a posição do eixo y
 
         // Limita a posição do quadrado para não ultrapassar as bordas do retangulo
         if (x > 120) x = 120;
