@@ -35,13 +35,13 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(alarme_industria alarme_industria.c inc/ssd1306.c)
+add_executable(alarme_industria alarme_industria.c lib/ssd1306.c)
 
 pico_set_program_name(alarme_industria "alarme_industria")
 pico_set_program_version(alarme_industria "0.1")
 
 # Generate PIO header
-pico_generate_pio_header(alarme_industria ${CMAKE_CURRENT_LIST_DIR}/animacao_matriz.pio)
+pico_generate_pio_header(alarme_industria ${CMAKE_CURRENT_LIST_DIR}/lib/animacao_matriz.pio)
 
 
 # Modify the below lines to enable/disable output over UART/USB

@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
-#include "inc/ssd1306.h"
-#include "inc/font.h"
+#include "lib/ssd1306.h"
+#include "lib/font.h"
 
 #include <stdio.h>
 #include <hardware/pio.h>           
