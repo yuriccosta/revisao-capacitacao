@@ -37,7 +37,6 @@ uint sm;
 ssd1306_t ssd; // Inicializa a estrutura do display
 static volatile uint32_t last_time_button = 0; // Variável para armazenar o tempo do último evento
 static volatile uint cor = 0; // Variável para armazenar a cor da borda do display
-static volatile uint32_t last_time_alarm = 0; // Variável para armazenar o tempo do último evento de alarme
 static volatile bool alarme_ativo = false; // Variável para armazenar o estado do alarme
 static volatile uint32_t last_time_message = 0; // Variável para armazenar o tempo do último evento de mensagem
 
@@ -179,7 +178,6 @@ static void gpio_irq_handler(uint gpio, uint32_t events) {
     if (current_time - last_time_button > 200){
         if(gpio == BUTTON_PIN_A){
             parar_buzzer(BUZZER_A); // Desliga o buzzer
-            last_time_alarm = current_time; // Atualiza o tempo do último evento
             alarme_ativo = false; // Desativa o alarme
         }
 
