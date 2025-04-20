@@ -151,10 +151,17 @@ void display_quadrado(uint16_t vrx_value, uint16_t vry_value){
     uint16_t y = HEIGHT - ((vry_value * HEIGHT) / max_value_joy); // Calcula a posição do eixo y
 
     // Limita a posição do quadrado para não ultrapassar as bordas do retangulo
-    if (x > 120) x = 120;
-    if (x < 8) x = 8;
-    if (y > 56) y = 56;
-    if (y < 8) y = 8;
+    if (x > 120){ 
+        x = 120;
+    } else if (x < 8){ 
+        x = 8;
+    }
+
+    if (y > 56){ 
+        y = 56; 
+    } else if (y < 8){
+        y = 8;
+    }
 
     x = x - 4; // Ajusta a posição do quadrado para passar para a função de desenho com o x sendo o centro do quadrado
     y = y - 4; // Ajusta a posição do quadrado para passar para a função de desenho com o y sendo o centro do quadrado
