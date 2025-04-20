@@ -101,7 +101,7 @@ void iniciar_buzzer(uint pin) {
     pwm_set_clkdiv(slice_num, 125); // Define o divisor de clock
     pwm_set_wrap(slice_num, 1000);  // Define o valor máximo do PWM
 
-    pwm_set_gpio_level(pin, 10); //Para um som mais baixo foi colocado em 10
+    pwm_set_gpio_level(pin, 100); //Para um som mais baixo foi colocado em 100
     pwm_set_enabled(slice_num, true);
 }
 
