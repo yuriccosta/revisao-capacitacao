@@ -37,12 +37,12 @@ uint sm;
 ssd1306_t ssd; // Inicializa a estrutura do display
 static volatile uint32_t last_time_button = 0; // Variável para armazenar o tempo do último evento
 static volatile uint cor = 0; // Variável para armazenar a cor da borda do display
-static volatile int temp = 0; // Variável para armazenar a temperatura
-static volatile int gas = 0; // Variável para armazenar o gás
 static volatile uint32_t last_time_alarm = 0; // Variável para armazenar o tempo do último evento de alarme
 static volatile bool alarme_ativo = false; // Variável para armazenar o estado do alarme
 static volatile uint32_t last_time_message = 0; // Variável para armazenar o tempo do último evento de mensagem
 
+
+// Matriz para armazenar os desenhos da matriz de LEDs
 uint padrao_led[10][LED_COUNT] = {
     {0, 0, 1, 0, 0,
      0, 0, 1, 0, 0,
@@ -129,6 +129,41 @@ void configuraGPIO(){
 }
 
 
+void configura_i2c(){
+    // I2C Initialisation. Using it at 400Khz.
+    i2c_init(I2C_PORT, 400 * 1000);
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C); // Set the GPIO pin function to I2C
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C); // Set the GPIO pin function to I2C
+    gpio_pull_up(I2C_SDA); // Pull up the data line
+    gpio_pull_up(I2C_SCL); // Pull up the clock line
+    ssd1306_init(&ssd, WIDTH, HEIGHT, false, endereco, I2C_PORT); // Inicializa o display
+    ssd1306_config(&ssd); // Configura o display
+    ssd1306_send_data(&ssd); // Envia os dados para o display
+
+    // Limpa o display. O display inicia com todos os pixels apagados.
+    ssd1306_fill(&ssd, false);
+    ssd1306_send_data(&ssd);
+}
+
+void display_quadrado(uint16_t vrx_value, uint16_t vry_value){
+    // x e y são o centro do quadrado
+    uint16_t x = (vrx_value * WIDTH) / max_value_joy; // Calcula a posição do eixo x 
+    uint16_t y = HEIGHT - ((vry_value * HEIGHT) / max_value_joy); // Calcula a posição do eixo y
+
+    // Limita a posição do quadrado para não ultrapassar as bordas do retangulo
+    if (x > 120) x = 120;
+    if (x < 8) x = 8;
+    if (y > 56) y = 56;
+    if (y < 8) y = 8;
+
+    x = x - 4; // Ajusta a posição do quadrado para passar para a função de desenho com o x sendo o centro do quadrado
+    y = y - 4; // Ajusta a posição do quadrado para passar para a função de desenho com o y sendo o centro do quadrado
+    
+    ssd1306_fill(&ssd, cor); // Limpa o display
+    ssd1306_rect(&ssd, 3, 3, 122, 58, !cor, cor); // Desenha um retângulo
+    ssd1306_rect(&ssd, y, x, 8, 8, true, true); // Desenha um quadrado
+    ssd1306_send_data(&ssd); // Atualiza o display
+}
 
 static void gpio_irq_handler(uint gpio, uint32_t events) {
      // Obtém o tempo atual em milissegundos
@@ -146,22 +181,9 @@ static void gpio_irq_handler(uint gpio, uint32_t events) {
 }
 
 int main(){
-    // I2C Initialisation. Using it at 400Khz.
-    i2c_init(I2C_PORT, 400 * 1000);
 
-    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C); // Set the GPIO pin function to I2C
-    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C); // Set the GPIO pin function to I2C
-    gpio_pull_up(I2C_SDA); // Pull up the data line
-    gpio_pull_up(I2C_SCL); // Pull up the clock line
-    ssd1306_init(&ssd, WIDTH, HEIGHT, false, endereco, I2C_PORT); // Inicializa o display
-    ssd1306_config(&ssd); // Configura o display
-    ssd1306_send_data(&ssd); // Envia os dados para o display
-
-    // Limpa o display. O display inicia com todos os pixels apagados.
-    ssd1306_fill(&ssd, false);
-    ssd1306_send_data(&ssd);
-
-
+    // Configuração do I2C
+    configura_i2c(); 
 
     // Configuração do PIO
     pio = pio0; 
@@ -169,14 +191,13 @@ int main(){
     sm = pio_claim_unused_sm(pio, true);
     animacao_matriz_program_init(pio, sm, offset, MATRIZ_PIN);
 
-
     // Configura os LEDs e botões
     configuraGPIO();
+
     // Configuração do ADC
     adc_init();
     adc_gpio_init(JOY_X);
     adc_gpio_init(JOY_Y);
-
 
     // Configuração da interrupção
     gpio_set_irq_enabled_with_callback(BUTTON_PIN_A, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
@@ -193,31 +214,31 @@ int main(){
         uint16_t vry_value = adc_read(); 
         
         // Simula leitura de temperatura e gás
-        gas = ((vrx_value - 16) / max_value_joy) * 2000; // Converte o valor do eixo x para a faixa de 0 a 2000
-        temp = ((vry_value - 16) / max_value_joy) * 95 - 10;  // Converte o valor do eixo y para a faixa de -10 a 85
+        uint16_t gas = ((vrx_value - 16) / max_value_joy) * 2000; // Converte o valor do eixo x para a faixa de 0 a 2000
+        int temp = ((vry_value - 16) / max_value_joy) * 95 - 10;  // Converte o valor do eixo y para a faixa de -10 a 85
         
         
-        uint32_t current_time = to_ms_since_boot(get_absolute_time());
-
         // Verifica a faixa de temperatura e gás
         if (temp < 40 && gas < 1000) {
             gpio_put(LED_PIN_GREEN, 1); // Liga o LED verde
             gpio_put(LED_PIN_RED, 0); // Desliga o LED vermelho
-            if(!alarme_ativo) display_desenho(0); // Estado seguro
+            if(!alarme_ativo) display_desenho(0); // Mostra o estado seguro na matriz
         } else if (temp > 55 || gas > 1500){
             gpio_put(LED_PIN_GREEN, 0); // Desliga o LED verde
             gpio_put(LED_PIN_RED, 1); // Liga o LED vermelho
+            
             iniciar_buzzer(BUZZER_A); // Liga o buzzer
             alarme_ativo = true; // Ativa o alarme
-            display_desenho(2); // Estado de perigo
+            display_desenho(2); // Mostra o estado de perigo na matriz
         } else {
             gpio_put(LED_PIN_GREEN, 1); // Liga o LED verde
             gpio_put(LED_PIN_RED, 1); // Liga o LED vermelho
-            if(!alarme_ativo) display_desenho(1); // Estado de alerta
+            if(!alarme_ativo) display_desenho(1); // Mostra o estado de alerta na matriz
         }
         
 
-        // Comunicação serial
+        // Comunicação serial feita a cada 1.5 segundos
+        uint32_t current_time = to_ms_since_boot(get_absolute_time());
         if (current_time - last_time_message > 1500) {
             last_time_message = current_time; // Atualiza o tempo do último evento
             printf("\nTemperatura: %d\n", temp);
@@ -226,23 +247,7 @@ int main(){
         }
 
 
-        // x e y são o centro do quadrado
-        uint16_t x = (vrx_value * WIDTH) / max_value_joy; // Calcula a posição do eixo x 
-        uint16_t y = HEIGHT - ((vry_value * HEIGHT) / max_value_joy); // Calcula a posição do eixo y
-
-        // Limita a posição do quadrado para não ultrapassar as bordas do retangulo
-        if (x > 120) x = 120;
-        if (x < 8) x = 8;
-        if (y > 56) y = 56;
-        if (y < 8) y = 8;
-
-        x = x - 4; // Ajusta a posição do quadrado para passar para a função de desenho com o x sendo o centro do quadrado
-        y = y - 4; // Ajusta a posição do quadrado para passar para a função de desenho com o y sendo o centro do quadrado
-        
-        ssd1306_fill(&ssd, cor); // Limpa o display
-        ssd1306_rect(&ssd, 3, 3, 122, 58, !cor, cor); // Desenha um retângulo
-        ssd1306_rect(&ssd, y, x, 8, 8, true, true); // Desenha um quadrado
-        ssd1306_send_data(&ssd); // Atualiza o display
+        display_quadrado(vrx_value, vry_value); // Atualiza o display com a posição do quadrado
 
         sleep_ms(100); 
     }
