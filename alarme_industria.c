@@ -23,7 +23,6 @@
 #define BUTTON_PIN_A 5          // Pino GPIO conectado ao botão A
 #define LED_COUNT 25            // Número de LEDs na matriz
 #define MATRIZ_PIN 7            // Pino GPIO conectado aos LEDs WS2818B
-#define zona_morta 100
 #define max_value_joy 4065.0 // (4081 - 16) que são os valores extremos máximos lidos pelo meu joystick
 
 #define I2C_PORT i2c1
@@ -127,7 +126,6 @@ void configuraGPIO(){
     gpio_init(BUTTON_PIN_A);
     gpio_set_dir(BUTTON_PIN_A, GPIO_IN);
     gpio_pull_up(BUTTON_PIN_A);
-
 }
 
 
@@ -209,11 +207,9 @@ int main(){
         } else if (temp > 55 || gas > 1500){
             gpio_put(LED_PIN_GREEN, 0); // Desliga o LED verde
             gpio_put(LED_PIN_RED, 1); // Liga o LED vermelho
-            if ( current_time - last_time_alarm > 10000) {
-                iniciar_buzzer(BUZZER_A); // Liga o buzzer
-                alarme_ativo = true; // Ativa o alarme
-                display_desenho(2); // Estado de perigo
-            }
+            iniciar_buzzer(BUZZER_A); // Liga o buzzer
+            alarme_ativo = true; // Ativa o alarme
+            display_desenho(2); // Estado de perigo
         } else {
             gpio_put(LED_PIN_GREEN, 1); // Liga o LED verde
             gpio_put(LED_PIN_RED, 1); // Liga o LED vermelho
@@ -228,7 +224,6 @@ int main(){
             printf("Gás: %d\n", gas);
             printf("Alarme: %s\n", alarme_ativo ? "Ativo!" : "Desativado");
         }
-
 
 
         // x e y são o centro do quadrado
